@@ -7,7 +7,7 @@ let package = Package(
         .executableTarget(
             name: "tapsh",
             path: ".",
-            exclude: ["config.json"]
+            exclude: ["config.json", "README.md"]
         )
     ]
 )
