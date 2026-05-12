@@ -1,17 +1,20 @@
 import CoreGraphics
 import Foundation
 
-let hotkeys = loadHotkeys(from: "/Users/rony/Projects/tapsh/config.json")
-print("Loaded hotkeys: \(hotkeys)")
+let configPath: String = {
+    if CommandLine.arguments.count == 2 {
+        return CommandLine.arguments[1]
+    }
 
-// Initialize our tap manager
+    let fallbackPath = FileManager.default.currentDirectoryPath + "/config.json"
+    return fallbackPath
+}()
+
+let hotkeys = loadHotkeys(from: configPath)
 let tapManager = HotkeyManager(hotkeys: hotkeys)
 
 do {
     try tapManager.start()
-    print("Listening for hotkeys... (Press Ctrl+C to quit)")
-
-    // This keeps the CLI running forever, listening to events
     CFRunLoopRun()
 } catch {
     print("Failed to start event tap: \(error)")
