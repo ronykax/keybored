@@ -5,7 +5,7 @@ let hotkeys = loadHotkeys(from: "/Users/rony/Projects/tapsh/config.json")
 print("Loaded hotkeys: \(hotkeys)")
 
 // Initialize our tap manager
-let tapManager = HotkeyTapManager(hotkeys: hotkeys)
+let tapManager = HotkeyManager(hotkeys: hotkeys)
 
 do {
     try tapManager.start()
