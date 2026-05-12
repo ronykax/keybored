@@ -1,13 +1,17 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.3
+// The swift-tools-version declares the minimum version of Swift required to build this package.
+
 import PackageDescription
 
 let package = Package(
-    name: "tapsh",
+    name: "TapSH",
     targets: [
+        // Targets are the basic building blocks of a package, defining a module or a test suite.
+        // Targets can depend on other targets in this package and products from dependencies.
         .executableTarget(
-            name: "tapsh",
-            path: ".",
-            exclude: ["config.json", "README.md"]
+            name: "TapSH",
+            path: "TapSH"
         )
-    ]
+    ],
+    swiftLanguageModes: [.v6]
 )

@@ -1,0 +1,90 @@
+import CoreGraphics
+import Foundation
+
+struct Hotkey: Codable {
+    let modifiers: [String]
+    let key: String
+    let run: String
+}
+
+class HotkeyManager {
+    let hotkeys: [Hotkey]
+    private var eventTap: CFMachPort?
+
+    init(hotkeys: [Hotkey]) {
+        self.hotkeys = hotkeys
+    }
+
+    func start() throws {
+        // We only care about key down events
+        let eventMask = (1 << CGEventType.keyDown.rawValue)
+
+        guard
+            let eventTap = CGEvent.tapCreate(
+                tap: .cgSessionEventTap,
+                place: .headInsertEventTap,
+                options: .defaultTap,
+                eventsOfInterest: CGEventMask(eventMask),
+                callback: { proxy, type, event, refcon in
+                    guard let refcon else {
+                        return Unmanaged.passRetained(event)
+                    }
+
+                    let manager = Unmanaged<HotkeyManager>
+                        .fromOpaque(refcon)
+                        .takeUnretainedValue()
+
+                    if type == .keyDown {
+                        return manager.handleEvent(event)
+                    }
+
+                    return Unmanaged.passRetained(event)
+                },
+                userInfo: UnsafeMutableRawPointer(
+                    Unmanaged.passUnretained(self).toOpaque()
+                )
+            )
+        else {
+            fatalError("failed to create event tap")
+        }
+
+        // Add the tap to the run loop
+        let source = CFMachPortCreateRunLoopSource(nil, eventTap, 0)
+
+        CFRunLoopAddSource(CFRunLoopGetCurrent(), source, .commonModes)
+        CGEvent.tapEnable(tap: eventTap, enable: true)
+    }
+
+    func handleEvent(_ event: CGEvent) -> Unmanaged<CGEvent>? {
+        let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
+
+        // Isolate just the modifier keys we care about
+        let relevantFlags = event.flags.intersection([
+            .maskCommand, .maskControl, .maskAlternate, .maskShift,
+        ])
+
+        for hotkey in hotkeys {
+            let targetFlags = mapModifiers(hotkey.modifiers)
+            let targetKeyCode = mapKeyToKeyCode(hotkey.key)
+
+            if relevantFlags == targetFlags && keyCode == targetKeyCode {
+                let task = Process()
+                task.executableURL = URL(fileURLWithPath: "/bin/zsh")
+                task.arguments = ["-c", hotkey.run]
+
+                do {
+                    try task.run()
+                    task.waitUntilExit()
+                } catch {
+                    print("failed to run hotkey: \(error)")
+                }
+
+                // Return nil to swallow the event (so other apps don't type "t")
+                return nil
+            }
+        }
+
+        // If it's not our hotkey, pass it along to the system normally
+        return Unmanaged.passRetained(event)
+    }
+}
