@@ -12,10 +12,10 @@ func mapModifiers(_ modifiers: [String]) -> CGEventFlags {
     return flags
 }
 
-// Maps your string key to a macOS Virtual KeyCode
+// O(1) lookup into the map built below — no layout fetch, no scan
 func mapKeyToKeyCode(_ key: String) -> Int64 {
-    guard let firstChar = key.first,
-        let code = keyCode(for: firstChar)
+    guard let firstChar = key.lowercased().first,
+        let code = keyCodeMap[firstChar]
     else {
         return -1
     }
@@ -23,14 +23,15 @@ func mapKeyToKeyCode(_ key: String) -> Int64 {
     return Int64(code)
 }
 
-func keyCode(for character: Character) -> CGKeyCode? {
-    guard let inputSource = TISCopyCurrentKeyboardLayoutInputSource()?.takeRetainedValue(),
-        let layoutData = TISGetInputSourceProperty(
-            inputSource,
-            kTISPropertyUnicodeKeyLayoutData
-        )
+// Scans all 128 virtual key codes exactly once at startup and maps the
+// character each one produces (unmodified, lowercase) to its key code.
+// Swift globals are lazily initialized, so this runs on first access.
+private let keyCodeMap: [Character: CGKeyCode] = {
+    guard
+        let inputSource = TISCopyCurrentKeyboardLayoutInputSource()?.takeRetainedValue(),
+        let layoutData = TISGetInputSourceProperty(inputSource, kTISPropertyUnicodeKeyLayoutData)
     else {
-        return nil
+        return [:]
     }
 
     let data = unsafeBitCast(layoutData, to: CFData.self)
@@ -39,12 +40,12 @@ func keyCode(for character: Character) -> CGKeyCode? {
         to: UnsafePointer<UCKeyboardLayout>.self
     )
 
-    let target = String(character).lowercased()
+    var map = [Character: CGKeyCode](minimumCapacity: 128)
 
     for keyCode in 0..<128 {
         var deadKeyState: UInt32 = 0
         var chars: [UniChar] = Array(repeating: 0, count: 4)
-        var length: Int = 0
+        var length = 0
 
         let result = UCKeyTranslate(
             keyboardLayout,
@@ -59,14 +60,14 @@ func keyCode(for character: Character) -> CGKeyCode? {
             &chars
         )
 
-        if result == noErr {
-            let produced = String(utf16CodeUnits: chars, count: length).lowercased()
+        guard result == noErr, length > 0 else { continue }
 
-            if produced == target {
-                return CGKeyCode(keyCode)
-            }
+        let produced = String(utf16CodeUnits: chars, count: length).lowercased()
+
+        if let char = produced.first {
+            map[char] = CGKeyCode(keyCode)
         }
     }
 
-    return nil
-}
+    return map
+}()

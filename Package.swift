@@ -4,12 +4,13 @@
 import PackageDescription
 
 let package = Package(
-    name: "TapSH",
+    name: "Hotbind",
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .executableTarget(
-            name: "tapsh"
+            name: "Hotbind",
+            path: "Hotbind"
         )
     ],
     swiftLanguageModes: [.v6]
