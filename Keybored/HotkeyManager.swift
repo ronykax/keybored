@@ -1,10 +1,12 @@
 import CoreGraphics
 import Foundation
 
-struct Hotkey: Codable {
+struct Hotkey: Codable, Identifiable {
     let modifiers: [String]
     let key: String
     let run: String
+    
+    var id: String { modifiers.joined() + key }
 }
 
 class HotkeyManager {
@@ -18,8 +20,8 @@ class HotkeyManager {
         self.hotkeys = hotkeys
         var lookup = [UInt64: Hotkey](minimumCapacity: hotkeys.count)
         for hotkey in hotkeys {
-            let flags = mapModifiers(hotkey.modifiers)
-            let keyCode = mapKeyToKeyCode(hotkey.key)
+            let flags = Mapping.mapModifiers(hotkey.modifiers)
+            let keyCode = Mapping.mapKeyToKeyCode(hotkey.key)
             let packed = (UInt64(flags.rawValue) << 32) | UInt64(keyCode)
             lookup[packed] = hotkey
         }
@@ -58,12 +60,11 @@ class HotkeyManager {
         else {
             fatalError("failed to create event tap")
         }
-
-        // Add the tap to the run loop
-        let source = CFMachPortCreateRunLoopSource(nil, eventTap, 0)
-
-        CFRunLoopAddSource(CFRunLoopGetCurrent(), source, .commonModes)
+        
         CGEvent.tapEnable(tap: eventTap, enable: true)
+        let runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0)
+        CFRunLoopAddSource(CFRunLoopGetMain(), runLoopSource, .commonModes)
+        self.eventTap = eventTap  // already storing it, good
     }
 
     func handleEvent(_ event: CGEvent) -> Unmanaged<CGEvent>? {

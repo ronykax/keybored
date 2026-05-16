@@ -1,26 +1,28 @@
 import Carbon.HIToolbox
 
-// Maps your string array to actual macOS bitmask flags
-func mapModifiers(_ modifiers: [String]) -> CGEventFlags {
-    var flags: CGEventFlags = []
-
-    if modifiers.contains("cmd") { flags.insert(.maskCommand) }
-    if modifiers.contains("ctrl") { flags.insert(.maskControl) }
-    if modifiers.contains("opt") { flags.insert(.maskAlternate) }
-    if modifiers.contains("shift") { flags.insert(.maskShift) }
-
-    return flags
-}
-
-// O(1) lookup into the map built below — no layout fetch, no scan
-func mapKeyToKeyCode(_ key: String) -> Int64 {
-    guard let firstChar = key.lowercased().first,
-        let code = keyCodeMap[firstChar]
-    else {
-        return -1
+struct Mapping {
+    // Maps your string array to actual macOS bitmask flags
+    static func mapModifiers(_ modifiers: [String]) -> CGEventFlags {
+        var flags: CGEventFlags = []
+        
+        if modifiers.contains("cmd") { flags.insert(.maskCommand) }
+        if modifiers.contains("ctrl") { flags.insert(.maskControl) }
+        if modifiers.contains("opt") { flags.insert(.maskAlternate) }
+        if modifiers.contains("shift") { flags.insert(.maskShift) }
+        
+        return flags
     }
-
-    return Int64(code)
+    
+    // O(1) lookup into the map built below — no layout fetch, no scan
+    static func mapKeyToKeyCode(_ key: String) -> Int64 {
+        guard let firstChar = key.lowercased().first,
+              let code = keyCodeMap[firstChar]
+        else {
+            return -1
+        }
+        
+        return Int64(code)
+    }
 }
 
 // Scans all 128 virtual key codes exactly once at startup and maps the
