@@ -13,12 +13,6 @@ struct ContentView: View {
                 .scaledToFit()
                 .frame(height: 93)
                 .padding(.horizontal, -16)
-                .overlay {
-                    Color.clear.contentShape(Rectangle())
-                        .gesture(DragGesture().onChanged { _ in
-                            NSApp.keyWindow?.performDrag(with: NSApp.currentEvent!)
-                        })
-                }
 
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
