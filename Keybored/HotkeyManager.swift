@@ -29,42 +29,48 @@ class HotkeyManager {
     }
 
     func start() throws {
-        // We only care about key down events
         let eventMask = (1 << CGEventType.keyDown.rawValue)
 
-        guard
-            let eventTap = CGEvent.tapCreate(
-                tap: .cgSessionEventTap,
-                place: .headInsertEventTap,
-                options: .defaultTap,
-                eventsOfInterest: CGEventMask(eventMask),
-                callback: { proxy, type, event, refcon in
-                    guard let refcon else {
-                        return Unmanaged.passRetained(event)
-                    }
-
-                    let manager = Unmanaged<HotkeyManager>
-                        .fromOpaque(refcon)
-                        .takeUnretainedValue()
-
-                    if type == .keyDown {
-                        return manager.handleEvent(event)
-                    }
-
+        guard let eventTap = CGEvent.tapCreate(
+            tap: .cgSessionEventTap,
+            place: .headInsertEventTap,
+            options: .defaultTap,
+            eventsOfInterest: CGEventMask(eventMask),
+            callback: { _, type, event, refcon in
+                guard let refcon else {
                     return Unmanaged.passRetained(event)
-                },
-                userInfo: UnsafeMutableRawPointer(
-                    Unmanaged.passUnretained(self).toOpaque()
-                )
+                }
+
+                let manager = Unmanaged<HotkeyManager>
+                    .fromOpaque(refcon)
+                    .takeUnretainedValue()
+
+                return type == .keyDown
+                    ? manager.handleEvent(event)
+                    : Unmanaged.passRetained(event)
+            },
+            userInfo: UnsafeMutableRawPointer(
+                Unmanaged.passUnretained(self).toOpaque()
             )
-        else {
-            fatalError("failed to create event tap")
+        ) else {
+            throw NSError(domain: "Hotkey", code: 1)
         }
-        
+
+        let source = CFMachPortCreateRunLoopSource(
+            kCFAllocatorDefault,
+            eventTap,
+            0
+        )
+
+        CFRunLoopAddSource(
+            CFRunLoopGetMain(),
+            source,
+            .commonModes
+        )
+
         CGEvent.tapEnable(tap: eventTap, enable: true)
-        let runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0)
-        CFRunLoopAddSource(CFRunLoopGetMain(), runLoopSource, .commonModes)
-        self.eventTap = eventTap  // already storing it, good
+
+        self.eventTap = eventTap
     }
 
     func handleEvent(_ event: CGEvent) -> Unmanaged<CGEvent>? {
@@ -88,7 +94,6 @@ class HotkeyManager {
 
         do {
             try task.run()
-            task.waitUntilExit()
         } catch {
             print("failed to run hotkey: \(error)")
         }
