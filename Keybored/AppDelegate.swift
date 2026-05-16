@@ -1,7 +1,10 @@
 import AppKit
 
 class AppDelegate: NSObject, NSApplicationDelegate {
-    // Don't quit when the last window closes
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        NSApp.setActivationPolicy(.accessory)
+    }
+
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         false
     }

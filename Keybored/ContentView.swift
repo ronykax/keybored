@@ -1,9 +1,8 @@
 import SwiftUI
 import ServiceManagement
-import ServiceManagement
 
 struct ContentView: View {
-    let configPath: String
+    let configURL: URL
     let hotkeyCount: Int
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
 
@@ -35,12 +34,12 @@ struct ContentView: View {
                         .labelsHidden()
                         .toggleStyle(.checkbox)
                         .onChange(of: launchAtLogin) {
-                            setLaunchAtLogin(launchAtLogin)
+                            setLaunchAtLogin(enabled: launchAtLogin)
                         }
                 }
 
                 Button {
-                    NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: configPath)])
+                    NSWorkspace.shared.activateFileViewerSelecting([configURL])
                 } label: {
                     Label("Reveal configuration in Finder", systemImage: "folder.fill")
                 }
@@ -60,17 +59,17 @@ struct ContentView: View {
         .labelStyle(FixedIconLabelStyle())
         .frame(width: 280)
     }
-    
-    func setLaunchAtLogin(_ enable: Bool) {
+
+    func setLaunchAtLogin(enabled: Bool) {
         do {
-            if enable {
+            if enabled {
                 try SMAppService.mainApp.register()
             } else {
                 try SMAppService.mainApp.unregister()
             }
         } catch {
-            print("Failed to \(enable ? "enable" : "disable") launch at login: \(error)")
-            launchAtLogin = SMAppService.mainApp.status == .enabled // revert on failure
+            print("Failed to \(enabled ? "enable" : "disable") launch at login: \(error)")
+            launchAtLogin = SMAppService.mainApp.status == .enabled
         }
     }
 }

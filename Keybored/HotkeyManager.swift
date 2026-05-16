@@ -1,36 +1,35 @@
 import CoreGraphics
 import Foundation
 
-struct Hotkey: Codable, Identifiable {
-    let modifiers: [String]
-    let key: String
-    let run: String
-    
-    var id: String { modifiers.joined() + key }
-}
-
 class HotkeyManager {
-    let hotkeys: [Hotkey]
+    let hotkeyCount: Int
     private var eventTap: CFMachPort?
 
-    // Packed key: high 32 bits = modifier flags rawValue, low 32 bits = keyCode
-    private let hotkeyLookup: [UInt64: Hotkey]
+    private let commandsByPackedKey: [UInt64: String]
+
+    private static let shell = URL(fileURLWithPath: "/bin/zsh")
 
     init(hotkeys: [Hotkey]) {
-        self.hotkeys = hotkeys
-        var lookup = [UInt64: Hotkey](minimumCapacity: hotkeys.count)
+        hotkeyCount = hotkeys.count
+
+        var lookup = [UInt64: String](minimumCapacity: hotkeys.count)
         for hotkey in hotkeys {
-            let flags = Mapping.mapModifiers(hotkey.modifiers)
-            let keyCode = Mapping.mapKeyToKeyCode(hotkey.key)
-            let packed = (UInt64(flags.rawValue) << 32) | UInt64(keyCode)
-            lookup[packed] = hotkey
+            let flags = Mapping.modifierFlags(from: hotkey.modifiers)
+            let keyCode = Mapping.keyCode(for: hotkey.key)
+            let packed = Self.packedKey(modifiers: flags, keyCode: keyCode)
+            lookup[packed] = hotkey.run
         }
-        self.hotkeyLookup = lookup
+        commandsByPackedKey = lookup
     }
 
     func start() throws {
+        try installKeyboardTap()
+    }
+
+    private func installKeyboardTap() throws {
         let eventMask = (1 << CGEventType.keyDown.rawValue)
 
+        // C API requires a static closure; refcon points back to this manager.
         guard let eventTap = CGEvent.tapCreate(
             tap: .cgSessionEventTap,
             place: .headInsertEventTap,
@@ -69,36 +68,39 @@ class HotkeyManager {
         )
 
         CGEvent.tapEnable(tap: eventTap, enable: true)
-
         self.eventTap = eventTap
     }
 
     func handleEvent(_ event: CGEvent) -> Unmanaged<CGEvent>? {
-        let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
+        let packed = Self.packedKey(for: event)
 
-        // Isolate just the modifier keys we care about
-        let relevantFlags = event.flags.intersection([
-            .maskCommand, .maskControl, .maskAlternate, .maskShift,
-        ])
-
-        let packed = (UInt64(relevantFlags.rawValue) << 32) | UInt64(keyCode)
-
-        guard let hotkey = hotkeyLookup[packed] else {
-            // Not our hotkey — pass it along to the system normally
+        guard let command = commandsByPackedKey[packed] else {
             return Unmanaged.passRetained(event)
         }
 
+        runShellCommand(command)
+        return nil
+    }
+
+    private static func packedKey(modifiers: CGEventFlags, keyCode: Int64) -> UInt64 {
+        (UInt64(modifiers.rawValue) << 32) | UInt64(keyCode)
+    }
+
+    private static func packedKey(for event: CGEvent) -> UInt64 {
+        let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
+        let modifiers = event.flags.intersection(Mapping.trackedModifierFlags)
+        return packedKey(modifiers: modifiers, keyCode: keyCode)
+    }
+
+    private func runShellCommand(_ command: String) {
         let task = Process()
-        task.executableURL = URL(fileURLWithPath: "/bin/zsh")
-        task.arguments = ["-c", hotkey.run]
+        task.executableURL = Self.shell
+        task.arguments = ["-c", command]
 
         do {
             try task.run()
         } catch {
             print("failed to run hotkey: \(error)")
         }
-
-        // Return nil to swallow the event (so other apps don't type "t")
-        return nil
     }
 }

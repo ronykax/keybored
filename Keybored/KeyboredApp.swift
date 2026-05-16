@@ -3,67 +3,33 @@ import SwiftUI
 @main
 struct KeyboredApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    
-    let configPath: String
-    let hotkeys: [Hotkey]
-    private let tapManager: HotkeyManager
-    
+
+    let configURL: URL
+    let hotkeyCount: Int
+    private let hotkeyManager: HotkeyManager
+
     init() {
-        configPath = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("keybored.json").path
-        
-        hotkeys = Self.loadHotkeys(from: configPath)
-        tapManager = HotkeyManager(hotkeys: hotkeys)
-        
-        let trusted = AXIsProcessTrusted()
+        let configURL = Hotkey.configURL()
+        let loadedHotkeys = Hotkey.load(from: configURL)
+        let manager = HotkeyManager(hotkeys: loadedHotkeys)
 
-        if trusted {
-            do {
-                try tapManager.start()
-            } catch {
-                print(error)
-            }
-        } else {
-            let alert = NSAlert()
-            alert.messageText = "Permission Required"
-            alert.informativeText = "Enable accessibility access for Keybored to detect shortcuts.\n\nRelaunch the app when you're done."
+        self.configURL = configURL
+        self.hotkeyCount = manager.hotkeyCount
+        self.hotkeyManager = manager
 
-            alert.addButton(withTitle: "Continue")
-
-            alert.runModal()
-
-            NSWorkspace.shared.open(
-                URL(string:
-                "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
-            )
-
-            #if !DEBUG
-            NSApplication.shared.terminate(nil)
-            #endif
-        }
+        Self.requestAccessibilityAndStartHotkeys(
+            manager: manager,
+            isAccessibilityGranted: AXIsProcessTrusted()
+        )
     }
-    
-    // decode and return list of hotkeys from config file (create config file if it doesn't exist)
-    static func loadHotkeys(from path: String) -> [Hotkey] {
-        let url = URL(fileURLWithPath: path)
-        
-        if !FileManager.default.fileExists(atPath: path) {
-            try? "[]".write(to: url, atomically: true, encoding: .utf8)
-            return []
-        }
-        
-        do {
-            let data = try Data(contentsOf: url)
-            return try JSONDecoder().decode([Hotkey].self, from: data)
-        } catch {
-            print("Failed to load config:", error)
-            return []
-        }
-    }
-    
+
     var body: some Scene {
+        settingsWindow
+    }
+
+    private var settingsWindow: some Scene {
         Window("Keybored", id: "main") {
-            ContentView(configPath: configPath, hotkeyCount: hotkeys.count)
+            ContentView(configURL: configURL, hotkeyCount: hotkeyCount)
                 .windowResizeBehavior(.disabled)
                 .windowMinimizeBehavior(.disabled)
                 .onAppear { NSApp.setActivationPolicy(.regular) }
@@ -71,5 +37,44 @@ struct KeyboredApp: App {
         }
         .windowResizability(.contentSize)
         .defaultPosition(.center)
+    }
+
+    private static func requestAccessibilityAndStartHotkeys(
+        manager: HotkeyManager,
+        isAccessibilityGranted: Bool
+    ) {
+        if isAccessibilityGranted {
+            startHotkeyListener(manager: manager)
+        } else {
+            promptForAccessibilityPermission()
+        }
+    }
+
+    private static func startHotkeyListener(manager: HotkeyManager) {
+        do {
+            try manager.start()
+        } catch {
+            print(error)
+        }
+    }
+
+    private static func promptForAccessibilityPermission() {
+        let alert = NSAlert()
+        alert.messageText = "Permission Required"
+        alert.informativeText = """
+            Enable accessibility access for Keybored to detect shortcuts.
+
+            Relaunch the app when you're done.
+            """
+        alert.addButton(withTitle: "Continue")
+        alert.runModal()
+
+        NSWorkspace.shared.open(
+            URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
+        )
+
+        #if !DEBUG
+        NSApplication.shared.terminate(nil)
+        #endif
     }
 }

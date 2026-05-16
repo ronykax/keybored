@@ -1,33 +1,41 @@
 import Carbon.HIToolbox
+import CoreGraphics
+
+enum ModifierToken {
+    static let command = "cmd"
+    static let control = "ctrl"
+    static let option = "opt"
+    static let shift = "shift"
+}
 
 struct Mapping {
-    // Maps your string array to actual macOS bitmask flags
-    static func mapModifiers(_ modifiers: [String]) -> CGEventFlags {
+    static let trackedModifierFlags: CGEventFlags = [
+        .maskCommand, .maskControl, .maskAlternate, .maskShift,
+    ]
+
+    static func modifierFlags(from modifiers: [String]) -> CGEventFlags {
         var flags: CGEventFlags = []
-        
-        if modifiers.contains("cmd") { flags.insert(.maskCommand) }
-        if modifiers.contains("ctrl") { flags.insert(.maskControl) }
-        if modifiers.contains("opt") { flags.insert(.maskAlternate) }
-        if modifiers.contains("shift") { flags.insert(.maskShift) }
-        
+
+        if modifiers.contains(ModifierToken.command) { flags.insert(.maskCommand) }
+        if modifiers.contains(ModifierToken.control) { flags.insert(.maskControl) }
+        if modifiers.contains(ModifierToken.option) { flags.insert(.maskAlternate) }
+        if modifiers.contains(ModifierToken.shift) { flags.insert(.maskShift) }
+
         return flags
     }
-    
-    // O(1) lookup into the map built below — no layout fetch, no scan
-    static func mapKeyToKeyCode(_ key: String) -> Int64 {
+
+    static func keyCode(for key: String) -> Int64 {
         guard let firstChar = key.lowercased().first,
               let code = keyCodeMap[firstChar]
         else {
             return -1
         }
-        
+
         return Int64(code)
     }
 }
 
-// Scans all 128 virtual key codes exactly once at startup and maps the
-// character each one produces (unmodified, lowercase) to its key code.
-// Swift globals are lazily initialized, so this runs on first access.
+// Built once at first use from the current keyboard layout.
 private let keyCodeMap: [Character: CGKeyCode] = {
     guard
         let inputSource = TISCopyCurrentKeyboardLayoutInputSource()?.takeRetainedValue(),
