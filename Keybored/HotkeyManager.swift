@@ -10,15 +10,26 @@ class HotkeyManager {
     private static let shell = URL(fileURLWithPath: "/bin/zsh")
 
     init(hotkeys: [Hotkey]) {
-        hotkeyCount = hotkeys.count
+        var lookup = [UInt64: String]()
+        var registeredCount = 0
 
-        var lookup = [UInt64: String](minimumCapacity: hotkeys.count)
-        for hotkey in hotkeys {
-            let flags = Mapping.modifierFlags(from: hotkey.modifiers)
+        for (index, hotkey) in hotkeys.enumerated() {
             let keyCode = Mapping.keyCode(for: hotkey.key)
+            guard keyCode != Mapping.invalidKeyCode else {
+                print(
+                    "Keybored: hotkey \(index + 1) has unknown key " +
+                    "\"\(Mapping.keyDescription(for: hotkey.key))\"; skipping"
+                )
+                continue
+            }
+
+            let flags = Mapping.modifierFlags(from: hotkey.modifiers)
             let packed = Self.packedKey(modifiers: flags, keyCode: keyCode)
             lookup[packed] = hotkey.run
+            registeredCount += 1
         }
+
+        hotkeyCount = registeredCount
         commandsByPackedKey = lookup
     }
 
@@ -83,7 +94,7 @@ class HotkeyManager {
     }
 
     private static func packedKey(modifiers: CGEventFlags, keyCode: Int64) -> UInt64 {
-        (UInt64(modifiers.rawValue) << 32) | UInt64(keyCode)
+        (UInt64(modifiers.rawValue) << 32) | UInt64(bitPattern: keyCode)
     }
 
     private static func packedKey(for event: CGEvent) -> UInt64 {

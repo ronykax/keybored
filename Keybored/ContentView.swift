@@ -14,7 +14,7 @@ struct ContentView: View {
                 .frame(height: 93)
                 .padding(.horizontal, -16)
 
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Label("Loaded hotkeys", systemImage: "keyboard.fill").foregroundStyle(.primary)
                     Spacer()
@@ -26,7 +26,8 @@ struct ContentView: View {
                     Spacer()
                     Toggle("", isOn: $launchAtLogin)
                         .labelsHidden()
-                        .toggleStyle(.checkbox)
+                        .toggleStyle(.switch)
+                        .controlSize(.small)
                         .onChange(of: launchAtLogin) {
                             setLaunchAtLogin(enabled: launchAtLogin)
                         }
@@ -71,7 +72,7 @@ struct ContentView: View {
 private struct FixedIconLabelStyle: LabelStyle {
     func makeBody(configuration: Configuration) -> some View {
         HStack(spacing: 8) {
-            configuration.icon.frame(width: 16, height: 16)
+            configuration.icon.frame(width: 20, height: 20)
             configuration.title
         }
     }

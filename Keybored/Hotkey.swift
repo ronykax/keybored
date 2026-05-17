@@ -1,8 +1,32 @@
 import Foundation
 
+enum HotkeyKey: Codable, Equatable {
+    case string(String)
+    case int(Int)
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if let intValue = try? container.decode(Int.self) {
+            self = .int(intValue)
+        } else {
+            self = .string(try container.decode(String.self))
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        switch self {
+        case .string(let value):
+            try container.encode(value)
+        case .int(let value):
+            try container.encode(value)
+        }
+    }
+}
+
 struct Hotkey: Codable {
     let modifiers: [String]
-    let key: String
+    let key: HotkeyKey
     let run: String
 
     static let configFileName = "keybored.json"
