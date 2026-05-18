@@ -7,6 +7,7 @@ struct KeyboredApp: App {
     let configURL: URL
     let hotkeyCount: Int
     private let hotkeyManager: HotkeyManager
+    @AppStorage("showMenuBarIcon") private var showMenuBarIcon = true
 
     init() {
         let configURL = Hotkey.configURL()
@@ -24,19 +25,36 @@ struct KeyboredApp: App {
     }
 
     var body: some Scene {
-        settingsWindow
+        mainWindow
+        menuBarExtra
     }
 
-    private var settingsWindow: some Scene {
+    private var mainWindow: some Scene {
         Window("Keybored", id: "main") {
             ContentView(configURL: configURL, hotkeyCount: hotkeyCount)
                 .windowResizeBehavior(.disabled)
-                .windowMinimizeBehavior(.disabled)
                 .onAppear { NSApp.setActivationPolicy(.regular) }
                 .onDisappear { NSApp.setActivationPolicy(.accessory) }
         }
         .windowResizability(.contentSize)
         .defaultPosition(.center)
+    }
+    
+    private var menuBarExtra: some Scene {
+        MenuBarExtra(isInserted: $showMenuBarIcon) {
+            Button {
+                // your reload logic here
+            } label: {
+                Label("Reload Hotkeys", systemImage: "arrow.clockwise")
+            }
+            Button {
+                NSApp.terminate(nil)
+            } label: {
+                Label("Quit", systemImage: "power")
+            }
+        } label: {
+            Image(systemName: "keyboard")
+        }
     }
 
     private static func requestAccessibilityAndStartHotkeys(

@@ -5,20 +5,32 @@ struct ContentView: View {
     let configURL: URL
     let hotkeyCount: Int
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
+    @State private var quickPressAction: String = "capslock"
+    @AppStorage("showMenuBarIcon") private var showMenuBarIcon = true
 
     var body: some View {
         VStack(spacing: 0) {
             Image("AppBanner")
                 .resizable()
                 .scaledToFit()
-                .frame(height: 93)
+                .frame(height: 107)
                 .padding(.horizontal, -16)
 
             VStack(alignment: .leading, spacing: 8) {
+                Text("General")
+                    .padding(.vertical, 4)
+                    .foregroundStyle(.secondary)
+                    .font(.headline)
+                
                 HStack {
-                    Label("Loaded hotkeys", systemImage: "keyboard.fill").foregroundStyle(.primary)
+                    Label("Loaded 6 hotkeys", systemImage: "keyboard.fill")
+                        .foregroundStyle(.primary)
+                        .monospacedDigit()
                     Spacer()
-                    Text("\(hotkeyCount)").foregroundStyle(.secondary).monospacedDigit()
+                    Button("Show in Finder") {
+                        NSWorkspace.shared.activateFileViewerSelecting([configURL])
+                    }
+                    .controlSize(.small)
                 }
 
                 HStack {
@@ -27,32 +39,53 @@ struct ContentView: View {
                     Toggle("", isOn: $launchAtLogin)
                         .labelsHidden()
                         .toggleStyle(.switch)
-                        .controlSize(.small)
+                        .controlSize(.mini)
                         .onChange(of: launchAtLogin) {
                             setLaunchAtLogin(enabled: launchAtLogin)
                         }
                 }
-
-                Button {
-                    NSWorkspace.shared.activateFileViewerSelecting([configURL])
-                } label: {
-                    Label("Reveal configuration in Finder", systemImage: "folder.fill")
+                
+                HStack {
+                    Label("Show icon in menu bar", systemImage: "pin.fill").foregroundStyle(.primary)
+                    Spacer()
+                    Toggle("", isOn: $showMenuBarIcon)
+                        .labelsHidden()
+                        .toggleStyle(.switch)
+                        .controlSize(.mini)
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(.blue)
-
-                Button {
-                    if let url = URL(string: "https://x.com/ronykax") { NSWorkspace.shared.open(url) }
-                } label: {
-                    Label("Rony Kati on X", systemImage: "at")
+                
+                Text("Hyper Key")
+                    .padding(.vertical, 4)
+                    .foregroundStyle(.secondary)
+                    .font(.headline)
+                    .padding(.top)
+                
+                HStack {
+                    Label("Remap Caps Lock", systemImage: "capslock.fill").foregroundStyle(.primary)
+                    Spacer()
+                    Toggle("", isOn: $launchAtLogin)
+                        .labelsHidden()
+                        .toggleStyle(.switch)
+                        .controlSize(.mini)
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(.blue)
+                
+                HStack {
+                    Label("Quick press action", systemImage: "button.horizontal.top.press.fill").foregroundStyle(.primary)
+                    Spacer()
+                    Picker("", selection: $quickPressAction) {
+                        Text("Caps Lock").tag("capslock")
+                        Text("Escape").tag("escape")
+                        Text("Nothing").tag("nothing")
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.menu)
+                    .controlSize(.small)
+                }
             }
             .padding()
         }
         .labelStyle(FixedIconLabelStyle())
-        .frame(width: 280)
+        .frame(width: 320)
     }
 
     func setLaunchAtLogin(enabled: Bool) {
@@ -76,4 +109,11 @@ private struct FixedIconLabelStyle: LabelStyle {
             configuration.title
         }
     }
+}
+
+#Preview {
+    ContentView(
+        configURL: URL(string: "https://example.com/config.json")!,
+        hotkeyCount: 5
+    )
 }
