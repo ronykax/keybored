@@ -2,97 +2,41 @@ import SwiftUI
 
 @main
 struct KeyboredApp: App {
-    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-
-    let configURL: URL
-    let hotkeyCount: Int
-    private let hotkeyManager: HotkeyManager
-    @AppStorage("showMenuBarIcon") private var showMenuBarIcon = true
-
     init() {
-        let configURL = Hotkey.configURL()
-        let loadedHotkeys = Hotkey.load(from: configURL)
-        let manager = HotkeyManager(hotkeys: loadedHotkeys)
+        if AXIsProcessTrusted() {
+            let hyperKeyEnabled = UserDefaults.standard.bool(forKey: "hyperKeyEnabled")
+            Monitor.setHyperEnabled(hyperKeyEnabled)
 
-        self.configURL = configURL
-        self.hotkeyCount = manager.hotkeyCount
-        self.hotkeyManager = manager
+            let unresolvedHotkeys = HotkeyLoader.getUnresolvedHotkeys()
+            Monitor.hotkeys = HotkeyLoader.resolveHotkeys(unresolvedHotkeys)
 
-        Self.requestAccessibilityAndStartHotkeys(
-            manager: manager,
-            isAccessibilityGranted: AXIsProcessTrusted()
-        )
+            Monitor.start()
+        } else {
+            requestPermissionAndQuit()
+        }
     }
 
     var body: some Scene {
-        mainWindow
-        menuBarExtra
-    }
-
-    private var mainWindow: some Scene {
         Window("Keybored", id: "main") {
-            ContentView(configURL: configURL, hotkeyCount: hotkeyCount)
-                .windowResizeBehavior(.disabled)
-                .onAppear { NSApp.setActivationPolicy(.regular) }
-                .onDisappear { NSApp.setActivationPolicy(.accessory) }
-        }
-        .windowResizability(.contentSize)
-        .defaultPosition(.center)
-    }
-    
-    private var menuBarExtra: some Scene {
-        MenuBarExtra(isInserted: $showMenuBarIcon) {
-            Button {
-                // your reload logic here
-            } label: {
-                Label("Reload Hotkeys", systemImage: "arrow.clockwise")
-            }
-            Button {
-                NSApp.terminate(nil)
-            } label: {
-                Label("Quit", systemImage: "power")
-            }
-        } label: {
-            Image(systemName: "keyboard")
+            ContentView()
         }
     }
 
-    private static func requestAccessibilityAndStartHotkeys(
-        manager: HotkeyManager,
-        isAccessibilityGranted: Bool
-    ) {
-        if isAccessibilityGranted {
-            startHotkeyListener(manager: manager)
-        } else {
-            promptForAccessibilityPermission()
-        }
-    }
-
-    private static func startHotkeyListener(manager: HotkeyManager) {
-        do {
-            try manager.start()
-        } catch {
-            print(error)
-        }
-    }
-
-    private static func promptForAccessibilityPermission() {
+    func requestPermissionAndQuit() {
         let alert = NSAlert()
-        alert.messageText = "Permission Required"
-        alert.informativeText = """
-            Enable accessibility access for Keybored to detect shortcuts.
-
-            Relaunch the app when you're done.
-            """
+        alert.messageText = "Accessibility permission required"
+        alert.informativeText = "Enable Accessibility access in System Settings."
         alert.addButton(withTitle: "Continue")
         alert.runModal()
 
-        NSWorkspace.shared.open(
-            URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
-        )
+        if let url = URL(
+            string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")
+        {
+            NSWorkspace.shared.open(url)
+        }
 
         #if !DEBUG
-        NSApplication.shared.terminate(nil)
+            NSApp.terminate(nil)
         #endif
     }
 }
