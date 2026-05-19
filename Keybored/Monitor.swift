@@ -4,7 +4,7 @@ enum Monitor {
     static private var hyperEnabled = false
     static private var hyperActive = false
 
-    static var hotkeys: [HotkeyID: String] = [:]
+    static var hotkeys: [Hotkey: String] = [:]
 
     static func setHyperEnabled(_ enabled: Bool) {
         Monitor.hyperEnabled = enabled
@@ -51,7 +51,7 @@ enum Monitor {
                 let modifiers = event.flags.intersection([
                     .maskCommand, .maskShift, .maskAlternate, .maskControl,
                 ])
-                let id = HotkeyID(keyCode: keyCode, modifiers: modifiers)
+                let id = Hotkey(keyCode: keyCode, modifiers: modifiers)
 
                 if let action = Monitor.hotkeys[id] {
                     if event.type == .keyDown {

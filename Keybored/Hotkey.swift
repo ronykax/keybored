@@ -1,7 +1,7 @@
 import CoreGraphics
 import Foundation
 
-struct HotkeyID: Hashable {
+struct Hotkey: Hashable {
     let keyCode: CGKeyCode
     let modifiers: UInt64
 
@@ -11,7 +11,7 @@ struct HotkeyID: Hashable {
     }
 }
 
-struct HotkeyUnresolved: Codable {
+struct HotkeyConfig: Codable {
     var modifiers: [String]
     var key: String
     var run: String

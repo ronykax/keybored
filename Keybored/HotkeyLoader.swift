@@ -2,25 +2,25 @@ import CoreGraphics
 import Foundation
 
 enum HotkeyLoader {
-    static func getUnresolvedHotkeys() -> [HotkeyUnresolved] {
+    static func getUnresolvedHotkeys() -> [HotkeyConfig] {
         // load or create ~/keybored.json
         let path = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(
             "keybored.json")
 
-        var result: [HotkeyUnresolved] = []
+        var result: [HotkeyConfig] = []
 
         if let data = try? Data(contentsOf: path) {
-            result = (try? JSONDecoder().decode([HotkeyUnresolved].self, from: data)) ?? []
+            result = (try? JSONDecoder().decode([HotkeyConfig].self, from: data)) ?? []
         } else {
-            let empty = try! JSONEncoder().encode([HotkeyUnresolved]())
+            let empty = try! JSONEncoder().encode([HotkeyConfig]())
             try! empty.write(to: path)
         }
 
         return result
     }
 
-    static func resolveHotkeys(_ unresolved: [HotkeyUnresolved]) -> [HotkeyID: String] {
-        var result: [HotkeyID: String] = [:]
+    static func resolveHotkeys(_ unresolved: [HotkeyConfig]) -> [Hotkey: String] {
+        var result: [Hotkey: String] = [:]
 
         for h in unresolved {
             // convert string modifiers to CGEventFlags
@@ -42,7 +42,7 @@ enum HotkeyLoader {
 
             // resolve key string to key code
             guard let keyCode = keyCodeFor(h.key) else { continue }
-            result[HotkeyID(keyCode: keyCode, modifiers: flags)] = h.run
+            result[Hotkey(keyCode: keyCode, modifiers: flags)] = h.run
         }
 
         return result
