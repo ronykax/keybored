@@ -7,8 +7,8 @@ struct KeyboredApp: App {
             let hyperKeyEnabled = UserDefaults.standard.bool(forKey: "hyperKeyEnabled")
             Monitor.setHyperEnabled(hyperKeyEnabled)
 
-            let unresolvedHotkeys = HotkeyLoader.getUnresolvedHotkeys()
-            Monitor.hotkeys = HotkeyLoader.resolveHotkeys(unresolvedHotkeys)
+            let unresolvedHotkeys = Parser.load()
+            Monitor.hotkeys = Parser.resolve(unresolvedHotkeys)
 
             Monitor.start()
         } else {

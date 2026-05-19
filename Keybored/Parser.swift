@@ -1,8 +1,8 @@
 import CoreGraphics
 import Foundation
 
-enum HotkeyLoader {
-    static func getUnresolvedHotkeys() -> [HotkeyConfig] {
+enum Parser {
+    static func load() -> [HotkeyConfig] {
         // load or create ~/keybored.json
         let path = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(
             "keybored.json")
@@ -19,7 +19,7 @@ enum HotkeyLoader {
         return result
     }
 
-    static func resolveHotkeys(_ unresolved: [HotkeyConfig]) -> [Hotkey: String] {
+    static func resolve(_ unresolved: [HotkeyConfig]) -> [Hotkey: String] {
         var result: [Hotkey: String] = [:]
 
         for h in unresolved {

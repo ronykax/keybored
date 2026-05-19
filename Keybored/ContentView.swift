@@ -12,8 +12,8 @@ struct ContentView: View {
                 .controlSize(.mini)
                 .toggleStyle(.switch)
             Button("Reload Hotkeys") {
-                let unresolvedHotkeys = HotkeyLoader.getUnresolvedHotkeys()
-                Monitor.hotkeys = HotkeyLoader.resolveHotkeys(unresolvedHotkeys)
+                let unresolvedHotkeys = Parser.load()
+                Monitor.hotkeys = Parser.resolve(unresolvedHotkeys)
             }
         }
         .padding()
