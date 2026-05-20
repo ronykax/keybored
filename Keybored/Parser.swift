@@ -20,8 +20,8 @@ enum Parser {
         return result
     }
 
-    static func resolve(_ unresolved: [HotkeyConfig]) -> [Hotkey: String] {
-        var result: [Hotkey: String] = [:]
+    static func resolve(_ unresolved: [HotkeyConfig]) -> [Hotkey: Action] {
+        var result: [Hotkey: Action] = [:]
 
         for x in unresolved {
             // convert string modifiers to CGEventFlags
@@ -43,7 +43,7 @@ enum Parser {
 
             // resolve key string to key code
             guard let keyCode = Mapping.keyCodeFor(x.key) else { continue }
-            result[Hotkey(keyCode: keyCode, modifiers: flags)] = x.run
+            result[Hotkey(keyCode: keyCode, modifiers: flags)] = Action(binary: x.binary, arguments: x.arguments)
         }
 
         return result

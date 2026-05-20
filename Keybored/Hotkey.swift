@@ -12,8 +12,14 @@ struct Hotkey: Hashable, Identifiable {
     }
 }
 
+struct Action: Hashable {
+    let binary: String
+    let arguments: [String]
+}
+
 struct HotkeyConfig: Codable {
     var modifiers: [String]
     var key: String
-    var run: String
+    var binary: String
+    var arguments: [String]
 }

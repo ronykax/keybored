@@ -11,7 +11,7 @@ enum Monitor {
     static private var hyperEnabled = false
     static private var hyperActive = false
 
-    static var hotkeys: [Hotkey: String] = [:]
+    static var hotkeys: [Hotkey: Action] = [:]
 
     static func setHyperEnabled(_ enabled: Bool) {
         Monitor.hyperEnabled = enabled
@@ -71,10 +71,10 @@ enum Monitor {
         CGEvent.tapEnable(tap: tap, enable: true)
     }
 
-    static private func runScript(_ script: String) {
+    static private func runScript(_ action: Action) {
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/bin/sh")
-        process.arguments = ["-c", script]
+        process.executableURL = URL(fileURLWithPath: action.binary)
+        process.arguments = action.arguments
         try? process.run()
     }
 }
