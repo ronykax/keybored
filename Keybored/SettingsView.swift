@@ -7,12 +7,6 @@ struct SettingsView: View {
     @AppStorage("quickPressAction") var quickPressAction = "nothing"
     @ObservedObject var state = monitorState
 
-    struct TableRow: Identifiable {
-        let id = UUID()
-        let hotkey: String
-        let run: String
-    }
-
     var body: some View {
         VStack {
             Form {

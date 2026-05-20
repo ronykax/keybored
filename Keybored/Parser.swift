@@ -6,21 +6,21 @@ enum Parser {
         FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("keybored.json")
     }
 
-    static func load() -> [HotkeyConfig] {
+    static func load() -> [ConfigItem] {
         let path = filePath()
-        var result: [HotkeyConfig] = []
+        var result: [ConfigItem] = []
 
         if let data = try? Data(contentsOf: path) {
-            result = (try? JSONDecoder().decode([HotkeyConfig].self, from: data)) ?? []
+            result = (try? JSONDecoder().decode([ConfigItem].self, from: data)) ?? []
         } else {
-            let empty = try! JSONEncoder().encode([HotkeyConfig]())
+            let empty = try! JSONEncoder().encode([ConfigItem]())
             try! empty.write(to: path)
         }
 
         return result
     }
 
-    static func resolve(_ unresolved: [HotkeyConfig]) -> [Hotkey: Action] {
+    static func resolve(_ unresolved: [ConfigItem]) -> [Hotkey: Action] {
         var result: [Hotkey: Action] = [:]
 
         for x in unresolved {
