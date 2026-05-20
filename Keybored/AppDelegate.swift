@@ -15,6 +15,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             requestPermissionAndQuit()
         }
     }
+    
+    func applicationWillTerminate(_ notification: Notification) {
+        Mapping.remapCapsLock(false)
+    }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         NSApp.setActivationPolicy(.accessory)
