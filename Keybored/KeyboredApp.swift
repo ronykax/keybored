@@ -2,41 +2,20 @@ import SwiftUI
 
 @main
 struct KeyboredApp: App {
-    init() {
-        if AXIsProcessTrusted() {
-            let hyperKeyEnabled = UserDefaults.standard.bool(forKey: "hyperKeyEnabled")
-            Monitor.setHyperEnabled(hyperKeyEnabled)
-
-            let unresolvedHotkeys = Parser.load()
-            Monitor.hotkeys = Parser.resolve(unresolvedHotkeys)
-
-            Monitor.start()
-        } else {
-            requestPermissionAndQuit()
-        }
-    }
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @AppStorage("showMenuBar") var showMenuBar = true
 
     var body: some Scene {
         Window("Keybored", id: "main") {
-            ContentView()
+            SettingsView()
+                .frame(width: 400)
+                .windowResizeBehavior(.disabled)
         }
-    }
-
-    func requestPermissionAndQuit() {
-        let alert = NSAlert()
-        alert.messageText = "Accessibility permission required"
-        alert.informativeText = "Enable Accessibility access in System Settings."
-        alert.addButton(withTitle: "Continue")
-        alert.runModal()
-
-        if let url = URL(
-            string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")
-        {
-            NSWorkspace.shared.open(url)
+        .windowResizability(.contentSize)
+        .defaultPosition(.center)
+        
+        MenuBarExtra("hi", systemImage: "keyboard.fill", isInserted: $showMenuBar) {
+            MenuBarView()
         }
-
-        #if !DEBUG
-            NSApp.terminate(nil)
-        #endif
     }
 }

@@ -1,7 +1,8 @@
 import CoreGraphics
 import Foundation
 
-struct Hotkey: Hashable {
+struct Hotkey: Hashable, Identifiable {
+    var id: Self { self }
     let keyCode: CGKeyCode
     let modifiers: UInt64
 

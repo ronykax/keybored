@@ -1,4 +1,11 @@
 import Cocoa
+import Combine
+
+class MonitorState: ObservableObject {
+    @Published var hotkeyCount = 0
+}
+
+let monitorState = MonitorState()
 
 enum Monitor {
     static private var hyperEnabled = false
@@ -8,20 +15,7 @@ enum Monitor {
 
     static func setHyperEnabled(_ enabled: Bool) {
         Monitor.hyperEnabled = enabled
-
-        let task = Process()
-        task.launchPath = "/usr/bin/hidutil"
-
-        if enabled {
-            task.arguments = [
-                "property", "--set",
-                "{\"UserKeyMapping\":[{\"HIDKeyboardModifierMappingSrc\":0x700000039,\"HIDKeyboardModifierMappingDst\":0x70000006D}]}",
-            ]
-        } else {
-            task.arguments = ["property", "--set", "{\"UserKeyMapping\":[]}"]
-        }
-
-        task.launch()
+        Mapping.remapCapsLock(enabled)
     }
 
     static func start() {
@@ -33,6 +27,7 @@ enum Monitor {
                 (1 << CGEventType.keyDown.rawValue) | (1 << CGEventType.keyUp.rawValue)
             ),
             callback: { _, _, event, _ in
+                // get key code from event
                 let keyCode = CGKeyCode(event.getIntegerValueField(.keyboardEventKeycode))
 
                 // f18 = 79
@@ -48,18 +43,21 @@ enum Monitor {
                     ])
                 }
 
+                // get modifiers from event
                 let modifiers = event.flags.intersection([
                     .maskCommand, .maskShift, .maskAlternate, .maskControl,
                 ])
+
+                // build ID from key code and modifiers
                 let id = Hotkey(keyCode: keyCode, modifiers: modifiers)
 
+                // run the ID's script if it exists
                 if let action = Monitor.hotkeys[id] {
                     if event.type == .keyDown {
-                        print("Hotkey matched: \(action)")
                         Monitor.runScript(action)
                     }
-
-                    return nil  // swallow both
+                    
+                    return nil // swallow both
                 }
 
                 return Unmanaged.passRetained(event)  // pass through
@@ -75,7 +73,7 @@ enum Monitor {
 
     static private func runScript(_ script: String) {
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/bin/zsh")
+        process.executableURL = URL(fileURLWithPath: "/bin/sh")
         process.arguments = ["-c", script]
         try? process.run()
     }

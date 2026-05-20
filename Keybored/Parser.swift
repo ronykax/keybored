@@ -2,11 +2,12 @@ import CoreGraphics
 import Foundation
 
 enum Parser {
-    static func load() -> [HotkeyConfig] {
-        // load or create ~/keybored.json
-        let path = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(
-            "keybored.json")
+    static func filePath() -> URL {
+        FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("keybored.json")
+    }
 
+    static func load() -> [HotkeyConfig] {
+        let path = filePath()
         var result: [HotkeyConfig] = []
 
         if let data = try? Data(contentsOf: path) {
@@ -22,9 +23,9 @@ enum Parser {
     static func resolve(_ unresolved: [HotkeyConfig]) -> [Hotkey: String] {
         var result: [Hotkey: String] = [:]
 
-        for h in unresolved {
+        for x in unresolved {
             // convert string modifiers to CGEventFlags
-            let flags = h.modifiers.reduce(CGEventFlags()) { acc, mod in
+            let flags = x.modifiers.reduce(CGEventFlags()) { acc, mod in
                 switch mod {
                 case "cmd":
                     return CGEventFlags(rawValue: acc.rawValue | CGEventFlags.maskCommand.rawValue)
@@ -41,8 +42,8 @@ enum Parser {
             }
 
             // resolve key string to key code
-            guard let keyCode = keyCodeFor(h.key) else { continue }
-            result[Hotkey(keyCode: keyCode, modifiers: flags)] = h.run
+            guard let keyCode = Mapping.keyCodeFor(x.key) else { continue }
+            result[Hotkey(keyCode: keyCode, modifiers: flags)] = x.run
         }
 
         return result
