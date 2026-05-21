@@ -72,9 +72,11 @@ enum Monitor {
     }
 
     static private func runScript(_ action: Action) {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: action.binary)
-        process.arguments = action.arguments
-        try? process.run()
+        DispatchQueue.global(qos: .userInitiated).async {
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: action.binary)
+            process.arguments = action.arguments
+            try? process.run()
+        }
     }
 }
