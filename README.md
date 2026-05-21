@@ -6,9 +6,7 @@ Whether you want to control Spotify, launch applications, or trigger automation 
 
 ---
 
-## Getting Started
-
-### 1. Install Keybored
+## Installation
 
 You can install Keybored using [Homebrew](https://brew.sh/):
 
@@ -20,17 +18,21 @@ brew install --cask keybored
 > [!TIP]
 > When installed via Homebrew, quarantine removal is handled automatically. If installing manually, you can bypass the Gatekeeper block by running:
 > ```bash
-> xattr -d com.apple.quarantine /path/to/Keybored.app
+> xattr -d com.apple.quarantine /Applications/Keybored.app
 > ```
 
-### 2. Create your Configuration File
+---
+
+## Getting Started
+
+### 1. Create your Configuration File
 Keybored automatically creates a `~/keybored.json` file on first launch. If you'd prefer to set it up manually beforehand, you can create it yourself:
 ```bash
 touch ~/keybored.json
 ```
 *(Alternatively, click the **folder icon** in the main window to show the file directly in Finder.*
 
-### 3. Configure Your Hotkeys
+### 2. Configure Your Hotkeys
 Add your shortcut mappings in the following JSON array format:
 
 ```json
@@ -44,7 +46,7 @@ Add your shortcut mappings in the following JSON array format:
 ]
 ```
 
-### 4. Reload Your Configuration
+### 3. Reload Your Configuration
 Whenever you make changes to `~/keybored.json`, you need to reload the configurations in Keybored:
 - **Menu Bar Icon:** Click on the Keybored menu bar icon and select **Reload**.
 - **Main Window:** Open the window and click the **Reload** button.
