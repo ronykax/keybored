@@ -6,6 +6,23 @@ Whether you want to control Spotify, launch applications, or trigger automation 
 
 ---
 
+## Installation
+
+You can install Keybored using [Homebrew](https://brew.sh/):
+
+```bash
+brew tap ronykax/keybored
+brew install --cask keybored
+```
+
+> [!TIP]
+> When installed via Homebrew, quarantine removal is handled automatically. If installing manually, you can bypass the Gatekeeper block by running:
+> ```bash
+> xattr -d com.apple.quarantine /Applications/Keybored.app
+> ```
+
+---
+
 ## Getting Started
 
 ### 1. Create your Configuration File
