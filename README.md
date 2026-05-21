@@ -6,7 +6,7 @@ Whether you want to control Spotify, launch applications, or trigger automation 
 
 ---
 
-## How to Use
+## Getting Started
 
 ### 1. Create your Configuration File
 Keybored reads its shortcuts from a JSON file located in your user home directory: `~/keybored.json`.
@@ -77,10 +77,3 @@ Holding **Caps Lock** acts as if `Control` + `Option` + `Command` + `Shift` are 
    ```json
    "modifiers": ["cmd", "shift", "ctrl", "opt"]
    ```
-
----
-
-## Troubleshooting
-
-- **Accessibility Permissions:** Because Keybored monitors global keyboard event taps (`CGEvent.tapCreate`), macOS requires you to grant Keybored accessibility permission under *System Settings > Privacy & Security > Accessibility*.
-- **Binary Paths:** Make sure to always use absolute paths for your executables (e.g., `/usr/bin/osascript` instead of just `osascript`).
