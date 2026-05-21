@@ -4,8 +4,6 @@ A macOS app that lets you bind system-wide hotkeys to actions.
 
 Whether you want to control Spotify, launch applications, or trigger automation scripts, Keybored executes them instantly in the background.
 
----
-
 ## Installation
 
 You can install Keybored using [Homebrew](https://brew.sh/):
