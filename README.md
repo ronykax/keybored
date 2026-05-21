@@ -61,6 +61,21 @@ Whenever you make changes to `~/keybored.json`, you need to reload the configura
 
 ---
 
+## Hyper Key
+
+To avoid conflicts with built-in macOS shortcuts, Keybored includes an optional Hyper Key feature that turns **Caps Lock** into a Hyper key.
+
+Holding **Caps Lock** acts as if `Control` + `Option` + `Command` + `Shift` are all pressed together. Since this combination is rarely used by macOS or applications, it creates a separate shortcut layer with fewer conflicts.
+
+### Enabling the Hyper Key
+1. Open the Keybored **Settings** window.
+2. Under the **Hyper Key** section, toggle **Remap Caps Lock** on.
+3. In your `~/keybored.json`, set your shortcut modifier list to use all four modifiers:
+   ```json
+   "modifiers": ["cmd", "shift", "ctrl", "opt"]
+
+---
+
 ## Configuration Reference
 
 Each object in the configuration array supports the following properties:
@@ -78,19 +93,3 @@ Each object in the configuration array supports the following properties:
 - **Function Keys:** `"f1"` through `"f12"`
 - **Alphanumeric:** `"a"` to `"z"`, `"0"` to `"9"`
 - **Symbols:** `"-"`, `"="`, `"["`, `"]"`, `";"`, `"'"` (quote), `","`, `"."`, `"/"`, `"\\"` (backslash), `"`"` (backtick)
-
----
-
-## Hyper Key
-
-To avoid conflicts with built-in macOS shortcuts, Keybored includes an optional Hyper Key feature that turns **Caps Lock** into a Hyper key.
-
-Holding **Caps Lock** acts as if `Control` + `Option` + `Command` + `Shift` are all pressed together. Since this combination is rarely used by macOS or applications, it creates a separate shortcut layer with fewer conflicts.
-
-### Enabling the Hyper Key
-1. Open the Keybored **Settings** window.
-2. Under the **Hyper Key** section, toggle **Remap Caps Lock** on.
-3. In your `~/keybored.json`, set your shortcut modifier list to use all four modifiers:
-   ```json
-   "modifiers": ["cmd", "shift", "ctrl", "opt"]
-   ```
