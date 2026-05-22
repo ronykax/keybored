@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Keybored</title>
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+        <script src="https://unpkg.com/lucide@latest"></script>
+        <style type="text/tailwindcss">
+            @theme {
+                --color-brand: #6743ff;
+                --color-dark: #050505;
+                --color-surface: #111111;
+                --color-border-subtle: #1f1f1f;
+
+                --font-sans:
+                    -apple-system, BlinkMacSystemFont, "SF Pro", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+                --font-mono:
+                    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            }
+        </style>
+        <style>
+            body {
+                background-color: #050505;
+                color: #ffffff;
+            }
+
+            .fade-in-section {
+                opacity: 0;
+                transform: translateY(20px);
+                visibility: hidden;
+                transition:
+                    opacity 0.6s ease-out,
+                    transform 0.6s ease-out;
+                will-change: opacity, transform, visibility;
+            }
+
+            .fade-in-section.is-visible {
+                opacity: 1;
+                transform: none;
+                visibility: visible;
+            }
+
+            /* Subtle syntax highlighting for JSON blocks */
+            .json-key {
+                color: #9cdcfe;
+            }
+            .json-string {
+                color: #ce9178;
+            }
+        </style>
+    </head>
+    <body class="antialiased font-sans selection:bg-brand selection:text-white">
+        <div class="max-w-4xl mx-auto px-6 py-8">
+            <!-- Header -->
+            <header class="flex items-center justify-between mb-24 fade-in-section is-visible">
+                <div class="flex items-center gap-3">
+                    <img src="icon.png" alt="Keybored Logo" class="w-8 h-8 rounded-lg shadow-sm" />
+                    <span class="font-bold text-xl tracking-tight">Keybored</span>
+                </div>
+                <nav class="flex items-center gap-8">
+                    <a
+                        href="https://x.com/ronykax"
+                        target="_blank"
+                        class="text-gray-400 hover:text-white transition-colors text-sm font-medium"
+                    >
+                        X
+                    </a>
+                    <a
+                        href="https://discord.gg/X7ntJFDzz7"
+                        target="_blank"
+                        class="text-gray-400 hover:text-white transition-colors text-sm font-medium"
+                    >
+                        Discord
+                    </a>
+                    <a
+                        href="https://github.com/ronykax/keybored"
+                        target="_blank"
+                        class="text-gray-400 hover:text-white transition-colors text-sm font-medium"
+                    >
+                        GitHub
+                    </a>
+                </nav>
+            </header>
+
+            <!-- Hero -->
+            <main>
+                <section class="mb-32 fade-in-section">
+                    <h1 class="text-3xl md:text-4xl font-semibold tracking-tight mb-6">Hotkeys for Everything</h1>
+                    <!-- <h1 class="text-3xl md:text-4xl font-semibold tracking-tight mb-6">Hotkeys for everything.</h1> -->
+                    <p class="text-gray-400 text-lg md:text-xl mb-10 leading-relaxed">
+                        Keybored lets you bind system-wide hotkeys to actions. Whether you can control Spotify, launch
+                        applications, or just run scripts, Keybored executes them instantly in the background.
+                    </p>
+
+                    <!-- homebrew thingy -->
+                    <div class="inline-flex flex-col gap-3 w-full">
+                        <span class="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                            Install via
+                            <a href="https://brew.sh" class="flex items-center inline-block">
+                                <span class="underline underline-offset-2">Homebrew</span>
+                                <i data-lucide="arrow-up-right" class="size-4 text-gray-500 inline-block mb-1"></i>
+                            </a>
+                        </span>
+                        <div
+                            class="bg-surface border border-border-subtle rounded-xl p-4 flex items-center justify-between gap-6 group"
+                        >
+                            <code class="font-mono text-gray-300 leading-relaxed">
+                                brew <span class="text-yellow-200">install</span>
+                                <span class="text-green-300">--cask</span> ronykax/apps/keybored
+                            </code>
+                            <button
+                                onclick="navigator.clipboard.writeText('brew install --cask ronykax/apps/keybored')"
+                                class="rounded-lg hover:bg-white/5 h-fit transition-colors text-gray-500 hover:text-white"
+                                title="Copy to clipboard"
+                            >
+                                <i data-lucide="copy" class="size-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl overflow-hidden border mt-20 border-border-subtle shadow-2xl">
+                        <img src="banner.png" alt="Keybored Interface" class="w-full h-auto scale-150" />
+                    </div>
+                </section>
+
+                <!-- Configuration -->
+                <section class="mb-32 fade-in-section">
+                    <h2 class="text-2xl font-semibold tracking-tight mb-4">Simple Configuration</h2>
+                    <p class="text-gray-400 mb-8 leading-relaxed">
+                        Add your hotkey mappings in
+                        <code
+                            class="bg-surface border border-border-subtle px-1.5 py-0.5 rounded text-gray-300 font-mono text-sm"
+                            >~/keybored.json</code
+                        >
+                        . Each hotkey entry consists of a combination of <strong>modifiers</strong>, a trigger
+                        <strong>key</strong>, the path to a <strong>binary</strong>, and any
+                        <strong>arguments</strong> to pass along.
+                    </p>
+
+                    <div
+                        class="bg-surface border border-border-subtle rounded-xl p-6 font-mono text-sm overflow-x-auto leading-relaxed"
+                    >
+                        <pre><code><span class="json-punct">[</span>
+  <span class="json-punct">{</span>
+    <span class="json-key">"modifiers"</span><span class="json-punct">: [</span><span class="json-string">"cmd"</span><span class="json-punct">,</span> <span class="json-string">"shift"</span><span class="json-punct">,</span> <span class="json-string">"ctrl"</span><span class="json-punct">,</span> <span class="json-string">"opt"</span><span class="json-punct">],</span>
+    <span class="json-key">"key"</span><span class="json-punct">:</span> <span class="json-string">"space"</span><span class="json-punct">,</span>
+    <span class="json-key">"binary"</span><span class="json-punct">:</span> <span class="json-string">"/usr/bin/osascript"</span><span class="json-punct">,</span>
+    <span class="json-key">"arguments"</span><span class="json-punct">: [</span><span class="json-string">"-e"</span><span class="json-punct">,</span> <span class="json-string">"tell application \"Spotify\" to playpause"</span><span class="json-punct">]</span>
+  <span class="json-punct">}</span>
+<span class="json-punct">]</span></code></pre>
+                    </div>
+                </section>
+
+                <!-- Hyper Key -->
+                <section class="mb-32 fade-in-section">
+                    <h2 class="text-2xl font-semibold tracking-tight mb-4">The Hyper Key</h2>
+                    <p class="text-gray-400 leading-relaxed mb-6">
+                        For conflict-free hotkeys, you can enable the Hyper key feature by toggling
+                        <strong>Remap Caps Lock</strong> in settings. Holding
+                        <strong class="text-white font-medium">Caps Lock</strong>
+                        acts as if all four modifier keys are pressed together.
+                    </p>
+
+                    <div
+                        class="bg-surface border border-border-subtle rounded-xl p-8 flex items-center justify-center h-fit"
+                    >
+                        <div class="flex gap-2 h-fit items-center">
+                            <div
+                                class="p-4 bg-dark border border-border-subtle rounded-xl shadow-sm flex items-center justify-center"
+                                title="Command"
+                            >
+                                <i data-lucide="command" class="size-4 text-gray-300"></i>
+                            </div>
+                            <div
+                                class="p-4 bg-dark border border-border-subtle rounded-xl shadow-sm flex items-center justify-center"
+                                title="Option"
+                            >
+                                <i data-lucide="option" class="size-4 text-gray-300"></i>
+                            </div>
+                            <div
+                                class="p-4 bg-dark border border-border-subtle rounded-xl shadow-sm flex items-center justify-center"
+                                title="Control"
+                            >
+                                <i data-lucide="chevron-up" class="size-4 text-gray-300"></i>
+                            </div>
+                            <div
+                                class="p-4 bg-dark border border-border-subtle rounded-xl shadow-sm flex items-center justify-center"
+                                title="Shift"
+                            >
+                                <i data-lucide="arrow-big-up" class="size-4 fill-current text-gray-300"></i>
+                            </div>
+                            <i data-lucide="equal" class="size-4 text-gray-500 mx-2"></i>
+                            <div
+                                class="p-4 bg-brand text-white border border-brand rounded-xl text-sm font-medium shadow-sm flex items-center gap-2"
+                            >
+                                <i data-lucide="arrow-big-up-dash" class="size-4 fill-current"></i>
+                                Caps Lock
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="text-gray-400 leading-relaxed mt-6">
+                        To use the Hyper key in your hotkeys, simply set the modifier list to include all four modifier
+                        keys.
+                    </p>
+                </section>
+            </main>
+        </div>
+
+        <script src="script.js"></script>
+    </body>
+</html>
