@@ -11,7 +11,7 @@ Whether you want to control Spotify, launch applications, or trigger automation 
 You can install Keybored using [Homebrew](https://brew.sh/):
 
 ```bash
-brew tap ronykax/keybored
+brew tap ronykax/apps
 brew install --cask keybored
 ```
 
