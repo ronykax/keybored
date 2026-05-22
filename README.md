@@ -1,8 +1,6 @@
 # Keybored 
 
-A macOS app that lets you bind system-wide hotkeys to actions.
-
-Whether you want to control Spotify, launch applications, or trigger automation scripts, Keybored executes them instantly in the background.
+Keybored lets you bind system-wide hotkeys to anything. Control Spotify, launch apps, run scripts, or toggle system settings, all executed instantly in the background.
 
 ---
 
