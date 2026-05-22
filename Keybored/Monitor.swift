@@ -1,5 +1,6 @@
 import Cocoa
 import Combine
+import IOKit
 
 class MonitorState: ObservableObject {
     @Published var hotkeyCount = 0
@@ -8,13 +9,16 @@ class MonitorState: ObservableObject {
 let monitorState = MonitorState()
 
 enum Monitor {
-    static private var hyperEnabled = false
-    static private var hyperActive = false
+    static private var hyperKeyEnabled = false
+    static private var hyperKeyActive = false
+    static private var hyperKeyDownTime: Date? = nil
+    static private var hyperKeyUsedAsModifier = false
 
+    static var quickPressAction = "nothing"
     static var hotkeys: [Hotkey: Action] = [:]
 
-    static func setHyperEnabled(_ enabled: Bool) {
-        Monitor.hyperEnabled = enabled
+    static func setHyperKeyEnabled(_ enabled: Bool) {
+        Monitor.hyperKeyEnabled = enabled
         Mapping.remapCapsLock(enabled)
     }
 
@@ -31,13 +35,36 @@ enum Monitor {
                 let keyCode = CGKeyCode(event.getIntegerValueField(.keyboardEventKeycode))
 
                 // f18 = 79
-                if keyCode == 79 && Monitor.hyperEnabled {
-                    Monitor.hyperActive = event.type == .keyDown
-                    return nil  // swallow f18
+                if keyCode == 79 && Monitor.hyperKeyEnabled {
+                    if event.type == .keyDown {
+                        // only record the first keydown, ignore repeats
+                        if Monitor.hyperKeyDownTime == nil {
+                            Monitor.hyperKeyDownTime = Date()
+                        }
+
+                        Monitor.hyperKeyActive = true
+                    } else {
+                        // only quick press if hyper wasn't used as a modifier
+                        if let downTime = Monitor.hyperKeyDownTime,
+                            Date().timeIntervalSince(downTime) < NSEvent.keyRepeatDelay,
+                            !Monitor.hyperKeyUsedAsModifier
+                        {
+                            DispatchQueue.global(qos: .userInitiated).async {
+                                Monitor.quickPress()
+                            }
+                        }
+
+                        Monitor.hyperKeyDownTime = nil
+                        Monitor.hyperKeyActive = false
+                        Monitor.hyperKeyUsedAsModifier = false
+                    }
+
+                    return nil
                 }
 
                 // inject all four modifier keys if hyper is active
-                if Monitor.hyperActive {
+                if Monitor.hyperKeyActive {
+                    Monitor.hyperKeyUsedAsModifier = true
                     event.flags = event.flags.union([
                         .maskCommand, .maskShift, .maskAlternate, .maskControl,
                     ])
@@ -56,8 +83,8 @@ enum Monitor {
                     if event.type == .keyDown {
                         Monitor.runScript(action)
                     }
-                    
-                    return nil // swallow both
+
+                    return nil  // swallow both
                 }
 
                 return Unmanaged.passRetained(event)  // pass through
@@ -78,5 +105,29 @@ enum Monitor {
             process.arguments = action.arguments
             try? process.run()
         }
+    }
+
+    static private func quickPress() {
+        if quickPressAction == "escape" {
+
+        } else if quickPressAction == "capslock" {
+            Monitor.toggleCapsLock()
+        } else {
+
+        }
+    }
+
+    static private func toggleCapsLock() {
+        let ioService = IOServiceGetMatchingService(
+            kIOMainPortDefault, IOServiceMatching("IOHIDSystem"))
+        var connect: io_connect_t = 0
+        IOServiceOpen(ioService, mach_task_self_, UInt32(kIOHIDParamConnectType), &connect)
+
+        var state = false
+        IOHIDGetModifierLockState(connect, Int32(kIOHIDCapsLockState), &state)
+        IOHIDSetModifierLockState(connect, Int32(kIOHIDCapsLockState), !state)
+
+        IOServiceClose(connect)
+        IOObjectRelease(ioService)
     }
 }

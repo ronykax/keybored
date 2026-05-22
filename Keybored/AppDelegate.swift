@@ -4,7 +4,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         if AXIsProcessTrusted() {
             let hyperKeyEnabled = UserDefaults.standard.bool(forKey: "hyperKeyEnabled")
-            Monitor.setHyperEnabled(hyperKeyEnabled)
+            Monitor.setHyperKeyEnabled(hyperKeyEnabled)
+
+            let quickPressAction = UserDefaults.standard.string(forKey: "quickPressAction")
+            Monitor.quickPressAction = quickPressAction ?? "nothing"
 
             let unresolvedHotkeys = Parser.load()
             Monitor.hotkeys = Parser.resolve(unresolvedHotkeys)
@@ -15,7 +18,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             requestPermissionAndQuit()
         }
     }
-    
+
     func applicationWillTerminate(_ notification: Notification) {
         Mapping.remapCapsLock(false)
     }
@@ -30,7 +33,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.windows.first?.makeKeyAndOrderFront(nil)
         return true
     }
-    
+
     func requestPermissionAndQuit() {
         let alert = NSAlert()
         alert.messageText = "Accessibility permission required"
@@ -44,8 +47,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             NSWorkspace.shared.open(url)
         }
 
-//        #if !DEBUG
-            NSApp.terminate(nil)
-//        #endif
+        //        #if !DEBUG
+        NSApp.terminate(nil)
+        //        #endif
     }
 }
