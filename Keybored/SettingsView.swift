@@ -66,6 +66,7 @@ struct SettingsView: View {
                         Text("Nothing").tag("nothing")
                         Text("Caps Lock").tag("capslock")
                         Text("Escape").tag("escape")
+                        Text("Secondary Click").tag("secondaryclick")
                     }
                     .onChange(of: quickPressAction) { _, newValue in
                         Monitor.quickPressAction = newValue

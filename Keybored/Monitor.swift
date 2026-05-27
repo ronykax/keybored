@@ -108,12 +108,15 @@ enum Monitor {
     }
 
     static private func quickPress() {
-        if quickPressAction == "escape" {
-
-        } else if quickPressAction == "capslock" {
+        switch quickPressAction {
+        case "capslock":
             Monitor.toggleCapsLock()
-        } else {
-
+        case "secondaryclick":
+            Monitor.secondaryClick()
+        case "escape":
+            Monitor.pressEscape()
+        default:
+            break
         }
     }
 
@@ -129,5 +132,23 @@ enum Monitor {
 
         IOServiceClose(connect)
         IOObjectRelease(ioService)
+    }
+    
+    static private func secondaryClick() {
+        let pos = CGEvent(source: nil)!.location
+
+        let down = CGEvent(mouseEventSource: nil, mouseType: .rightMouseDown, mouseCursorPosition: pos, mouseButton: .right)!
+        let up   = CGEvent(mouseEventSource: nil, mouseType: .rightMouseUp,   mouseCursorPosition: pos, mouseButton: .right)!
+
+        down.post(tap: .cghidEventTap)
+        up.post(tap: .cghidEventTap)
+    }
+    
+    static private func pressEscape() {
+        let down = CGEvent(keyboardEventSource: nil, virtualKey: 0x35, keyDown: true)
+        let up   = CGEvent(keyboardEventSource: nil, virtualKey: 0x35, keyDown: false)
+
+        down?.post(tap: .cghidEventTap)
+        up?.post(tap: .cghidEventTap)
     }
 }
